@@ -95,7 +95,7 @@ exports.getCV = async (req, res) => {
     const reformatedCV = await getGPTResponse(prompt1, cvData, 0.05);
     console.log(reformatedCV);
 
-    const prompt2 = `I am providing a job description. Extract only the job title and the most job related keywords, such as skills and soft skills.Return it as a list.
+    const prompt2 = `I am providing a job description. Extract only the job title and the most job related keywords, such as skills, responsibilities and soft skills.Return it as a list.
     `;
 
     const jobKeywords = await getGPTResponse(prompt2,jobData, 0.6);
@@ -103,16 +103,20 @@ exports.getCV = async (req, res) => {
 
     const prompt3 = `The user will provide with a CV and with keywords extracted from a new job requirement, including skills and responsibilities.
 
-    Include the keywords into the user CV. Make the inclusion very natural and apply the specific words in context, where it is logically applicable.If the keywords don't match the logic of the section, do not include. 
+    Include the keywords into the user CV. Make the inclusion very natural and apply the specific words in context, where it is logically  applicable.If the keywords don't match the logic of the job description section, generate a brief scenario where it could be applicable given the job title and description.
     
     Keep the same roles and titles.
     Avoid adding the new job title.
+    Avoid major changes of the content.
     
-    Modify the CV by maintaining its original structure and avoid changing job titles and degree titles. Wrap each line in a <p> tag and end with a </p> tag.
+    Modify the CV by maintaining its original structure and avoid changing job titles and degree titles.Use professional language and terminology and optimise for ATS algorithms. Wrap each line in a <p> tag and end with a </p> tag.
     
-    Add a paragraph at the end explaining the changes done.`;
+    Add a paragraph at the end explaining the changes done.
     
-    const finalResponse = await getGPTResponseFinal(prompt3,reformatedCV,jobKeywords,1.2);
+    
+    `;
+    
+    const finalResponse = await getGPTResponseFinal(prompt3,reformatedCV,jobKeywords,0.9);
     console.log(finalResponse);
 
     res.json({ message: "data received", finalResponse });
