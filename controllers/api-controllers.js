@@ -1,9 +1,75 @@
 const axios = require("axios");
-require("dotenv").config()
+require("dotenv").config();
 const API_KEY = process.env.OPENAI_API_KEY;
+const {OpenAIApi} = require("openai")
 
+const openaiEndpoint = "https://api.openai.com/v1/chat/completions";
+const headers = {
+  Authorization: `Bearer ${API_KEY}`,
+  "Content-Type": "application/json",
+};
 
-console.log(API_KEY);
+async function getGPTResponse(promptMessage, inputData, temp) {
+  const payload = {
+    model: "gpt-3.5-turbo-16k",
+    messages: [
+      {
+        role: "system",
+        content: promptMessage,
+      },
+      {
+        role: "user",
+        content: inputData,
+      },
+    ],
+    temperature: temp,
+    top_p: 1,
+    n: 1,
+    stream: false,
+    max_tokens: 10000,
+    presence_penalty: 0,
+    frequency_penalty: 0,
+  };
+
+  const response = await axios.post(openaiEndpoint, payload, {
+    headers: headers,
+  });
+
+  return response.data.choices[0].message.content.trim();
+}
+
+async function getGPTResponseFinal(promptMessage, inputData1,inputData2, temp) {
+  const payload = {
+    model: "gpt-4-0613",
+    messages: [
+      {
+        role: "system",
+        content: promptMessage,
+      },
+      {
+        role: "user",
+        content: `User CV ${inputData1}`,
+      },
+      {
+        role: "user",
+        content: `Keywords ${inputData2}`,
+      },
+    ],
+    temperature: temp,
+    top_p: 1,
+    n: 1,
+    stream: false,
+    max_tokens: 7000,
+    presence_penalty: 0,
+    frequency_penalty: 0,
+  };
+
+  const response = await axios.post(openaiEndpoint, payload, {
+    headers: headers,
+  });
+
+  return response.data.choices[0].message.content.trim();
+}
 
 exports.checkAPI = async (req, res) => {
   try {
@@ -18,51 +84,38 @@ exports.getCV = async (req, res) => {
     const jobData = req.body.jobDescription;
     const cvData = req.body.pdfContent;
 
-    const openaiEndpoint = "https://api.openai.com/v1/chat/completions";
-    const headers = {
-      Authorization:
-        `Bearer ${API_KEY}`,
-      "Content-Type": "application/json",
-    };
+    const prompt1 = `Segment the following CV into its major sections. Use strictly the following format: 
+    1.Job title and Company
+    -Job title
+    -Job description
+    2.Education
+    -Degree/Diploma 
+    3.Skills`;
 
-    const payload = {
-      model: "gpt-3.5-turbo-16k",
-      messages: [
-        {
-          role: "user",
-          content: ` 
-      I am providing you with my CV data and with a job description for the job that I am looking to apply to. Here is the job description for the job ${jobData}
-      Extract the keywords from the job description and include them naturally into the CV. Please make sure that the keywords are naturally included and make sense in the context of the sentences.  The flexibility of adding the keywords should be limited within the typical algorithm of an ATS system (Applicant Tracking System). Make sure that the new formulated sentences make sense and  are compliant with the ATS system. 
-      
-      Have a look through the CV data and structure the final output strictly following the logic below:
-        Part 1: Job experience
-      - A list of job titles with a description of each role. The job title with tenure and company name should be the header, with the job description below.
-       
-       Part2: Education
-      - A list of institutions, with degree titles with a description below.The degree and institution name should be the header of the list.
-      
-      Part 3: Skills
-      - A list of skills by the candidate
-      
-      Please apply the structure to the following data to ${cvData} and return back the data with each section wrapped in a <p> and end with </p> tag.`,
-        },
-      ],
-      temperature: 1,
-      top_p: 0.9,
-      n: 1,
-      stream: false,
-      max_tokens: 10000,
-      presence_penalty: 0,
-      frequency_penalty: 0,
-    };
+    const reformatedCV = await getGPTResponse(prompt1, cvData, 0.05);
+    console.log(reformatedCV);
 
-    const response = await axios.post(openaiEndpoint, payload, {
-      headers: headers,
-    });
-    const result = response.data.choices[0].message.content.trim();
-    console.log(result);
+    const prompt2 = `I am providing a job description. Extract only the job title and the most job related keywords, such as skills and soft skills.Return it as a list.
+    `;
 
-    res.json({ message: "data received", reformatedCV: result });
+    const jobKeywords = await getGPTResponse(prompt2,jobData, 0.6);
+    console.log(jobKeywords);
+
+    const prompt3 = `The user will provide with a CV and with keywords extracted from a new job requirement, including skills and responsibilities.
+
+    Include the keywords into the user CV. Make the inclusion very natural and apply the specific words in context, where it is logically applicable.If the keywords don't match the logic of the section, do not include. 
+    
+    Keep the same roles and titles.
+    Avoid adding the new job title.
+    
+    Modify the CV by maintaining its original structure and avoid changing job titles and degree titles. Wrap each line in a <p> tag and end with a </p> tag.
+    
+    Add a paragraph at the end explaining the changes done.`;
+    
+    const finalResponse = await getGPTResponseFinal(prompt3,reformatedCV,jobKeywords,1.2);
+    console.log(finalResponse);
+
+    res.json({ message: "data received", finalResponse });
   } catch (error) {
     console.error("Error", error);
     res.status(500).json({ message: "An error occured with the data" });
