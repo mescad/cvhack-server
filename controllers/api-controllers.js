@@ -3,28 +3,8 @@ require("dotenv").config();
 const API_KEY = process.env.OPENAI_API_KEY;
 const { OpenAIApi } = require("openai");
 
-// exports.storeDataMiddleware= function(req, res, next) {
-//   if (!req.session) {
-//     console.error("Session is not initialized.");
-//     return res.status(500).send("Session initialization error.");
-//   }
-//   req.session.storedData = {};
-
-//   // Store the initial data from the request
-//   req.session.storedData.cvData = req.body.pdfContent;
-//   req.session.storedData.jobData = req.body.jobDescription;
-//   req.session.storedData.wildMode = req.body.toggle;
-
-//   req.session.save(err => {
-//     if (err) {
-//       console.error("Error saving session:", err);
-      
-//     }
-//     next();
-//   });
 
 
-// }
 
 const openaiEndpoint = "https://api.openai.com/v1/chat/completions";
 const headers = {
@@ -211,6 +191,8 @@ exports.getCV = async (req, res) => {
  Try adding one or two new job titles and responsibilities  which are relevant to the keywords of the job description.
  Try changing the degree or educational background to make it relevant to the keywords from the job requirement.
 Try updating the skills list to match the keywords.
+Naturally include the keywords in the biography/summary, if possible.If the biography is not in the cv, do not include it.
+        
    
     
  Modify the CV by maintaining its original structure.Use professional language and terminology and optimise for ATS algorithms. Make sure the end result sounds credible and help the user the ideal candidate for the role. Make sure it can trick the ATS.
@@ -276,7 +258,7 @@ exports.refineAnswer = async (req, res) => {
         Keep the same roles and titles.
         Avoid adding the new job title.
         Avoid major changes of the content.
-        Naturally include the keywords in the biography/summary, if possible.
+        Naturally include the keywords in the biography/summary, if possible.If the biography is not in the cv, do not include it.
         
         Modify the CV by maintaining its original structure and avoid changing job titles and degree titles.
         Use professional language and terminology and optimise for ATS algorithms.
