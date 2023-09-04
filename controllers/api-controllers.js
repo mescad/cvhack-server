@@ -3,34 +3,29 @@ require("dotenv").config();
 const API_KEY = process.env.OPENAI_API_KEY;
 const { OpenAIApi } = require("openai");
 
-exports.storeDataMiddleware= function(req, res, next) {
-  if (!req.session) {
-    console.error("Session is not initialized.");
-    return res.status(500).send("Session initialization error.");
-  }
-  req.session.storedData = {};
+// exports.storeDataMiddleware= function(req, res, next) {
+//   if (!req.session) {
+//     console.error("Session is not initialized.");
+//     return res.status(500).send("Session initialization error.");
+//   }
+//   req.session.storedData = {};
 
-  // Store the initial data from the request
-  req.session.storedData.cvData = req.body.pdfContent;
-  req.session.storedData.jobData = req.body.jobDescription;
-  req.session.storedData.wildMode = req.body.toggle;
+//   // Store the initial data from the request
+//   req.session.storedData.cvData = req.body.pdfContent;
+//   req.session.storedData.jobData = req.body.jobDescription;
+//   req.session.storedData.wildMode = req.body.toggle;
 
-  // console.log(req.session.storedData.cvData);
-  // console.log(req.session.storedData.jobData);
-  // console.log(req.session.storedData.wildMode);
-  // console.log("storeDataMiddleware is called");
-  // console.log("After setting storedData:", req.session.storedData);
-
-  req.session.save(err => {
-    if (err) {
-      console.error("Error saving session:", err);
+//   req.session.save(err => {
+//     if (err) {
+//       console.error("Error saving session:", err);
       
-    }
-    next();
-  });
+//     }
+//     next();
+//   });
 
 
-}
+// }
+
 const openaiEndpoint = "https://api.openai.com/v1/chat/completions";
 const headers = {
   Authorization: `Bearer ${API_KEY}`,
@@ -167,7 +162,7 @@ exports.getCV = async (req, res) => {
     const cvData = req.body.pdfContent;
     const wildMode = req.body.toggle;
 
-    console.log("Stored in session:", req.session.storedData);
+
 
 
     
@@ -232,9 +227,10 @@ Add a paragraph at the end explaining the changes done.Wrap it in <p> tags. Add 
         promptWild,
         reformatedCV,
         jobKeywords,
-        1.2
+        1.15
       );
-      console.log(req.storedData.finalResponse);
+      
+      console.log(finalResponse);
     } else {
       finalResponse = await getGPTResponseFinal(
         prompt3,
@@ -242,11 +238,11 @@ Add a paragraph at the end explaining the changes done.Wrap it in <p> tags. Add 
         jobKeywords,
         0.7
       );
-      console.log(req.session.storedData.finalResponse);
+      console.log(finalResponse);
     }
 
     res.json({ message: "data received", finalResponse:finalResponse, reformatedCV:reformatedCV, jobKeywords:jobKeywords });
-    console.log("Session ID:", req.sessionID);
+    // console.log("Session ID:", req.sessionID);
   } catch (error) {
     console.error("Error", error);
     res.status(500).json({ message: "An error occured with the data" });

@@ -4,7 +4,7 @@ const ApiController= require ('../controllers/api-controllers')
 
 
 router.route('/api')
-.post(ApiController.storeDataMiddleware,ApiController.getCV)
+.post(ApiController.getCV)
 .get(ApiController.checkAPI)
 
 router.route('/api/refine')
