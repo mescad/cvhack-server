@@ -172,7 +172,8 @@ exports.getCV = async (req, res) => {
     -Job description
     2.Education
     -Degree/Diploma 
-    3.Skills`;
+    3.Skills
+    4.Biography`;
 
     const reformatedCV = await getGPTResponse(prompt1, cvData, 0.05);
     console.log(reformatedCV);
@@ -275,6 +276,7 @@ exports.refineAnswer = async (req, res) => {
         Keep the same roles and titles.
         Avoid adding the new job title.
         Avoid major changes of the content.
+        Naturally include the keywords in the biography/summary, if possible.
         
         Modify the CV by maintaining its original structure and avoid changing job titles and degree titles.
         Use professional language and terminology and optimise for ATS algorithms.
