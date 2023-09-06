@@ -1,6 +1,15 @@
+const cors = require("cors");
 const express = require("express");
 const session = require("express-session");
+
 const app = express();
+
+const corsOptions = {
+  origin: process.env.FRONTEND_URL,  
+}
+
+app.use(cors(corsOptions));
+
 app.use(
   session({
     secret: "your-secret-key",
@@ -12,15 +21,9 @@ app.use(
 
 const PORT = process.env.PORT || 8080;
 
-const cors = require("cors");
 const apiRoutes = require("./routes/api-routes");
 
 app.use(express.json());
-
-const corsOptions = {
-  origin: process.env.FRONTEND_URL,  
-}
-app.use(cors(corsOptions));
 
 app.use("/", apiRoutes);
 
